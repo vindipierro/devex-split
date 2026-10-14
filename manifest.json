@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Roblox DevEx Rate Split",
+  "version": "1.0.0",
+  "description": "Shows how eligible DevEx Robux split between two exchange rates.",
+  "content_scripts": [
+    {
+      "matches": ["https://create.roblox.com/dashboard/devex*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
