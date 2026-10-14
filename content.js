@@ -133,6 +133,9 @@ function createPanel() {
       </div>
     </div>
     <div class="devex-split-footer" data-summary></div>
+    <div class="devex-split-warning">
+      This split is only valid if all eligible Robux are valued at either $0.0038 or $0.0054. If your eligible balance contains legacy $0.0035 Robux, the calculation will be incorrect.
+    </div>
   `;
   return panel;
 }
