@@ -95,6 +95,35 @@ function findDevExValues() {
   return null;
 }
 
+function findMoneyWaitingFrame() {
+  const elements = Array.from(document.querySelectorAll("body *"));
+  const label = elements.find((element) => {
+    const text = element.textContent?.replace(/\s+/g, " ").trim() || "";
+    return /money is waiting for you/i.test(text) && text.length < 500;
+  });
+
+  if (!label) return null;
+
+  let current = label;
+  let fallback = label;
+
+  for (let depth = 0; depth < 8 && current; depth += 1, current = current.parentElement) {
+    const text = current.innerText?.replace(/\u00a0/g, " ").trim() || "";
+    const rect = current.getBoundingClientRect();
+
+    if (text.length < 1800 && rect.width >= 300) {
+      fallback = current;
+    }
+
+    const nextText = current.nextElementSibling?.innerText?.replace(/\u00a0/g, " ").trim() || "";
+    if (text.length < 1800 && rect.width >= 300 && nextText.length > 200) {
+      return current;
+    }
+  }
+
+  return fallback;
+}
+
 function solveSplit(totalRobux, totalUsd) {
   const highRateRobux = (totalUsd - LOW_RATE * totalRobux) / (HIGH_RATE - LOW_RATE);
   const lowRateRobux = totalRobux - highRateRobux;
@@ -141,15 +170,20 @@ function createPanel() {
 }
 
 function placePanel(panel, anchor) {
-  if (panel.isConnected) return;
-
   if (anchor && anchor.parentElement) {
-    anchor.insertAdjacentElement("afterend", panel);
+    panel.classList.remove("devex-split-floating");
+
+    if (anchor.nextElementSibling !== panel) {
+      anchor.insertAdjacentElement("afterend", panel);
+    }
+
     return;
   }
 
-  panel.classList.add("devex-split-floating");
-  document.body.appendChild(panel);
+  if (!panel.isConnected) {
+    panel.classList.add("devex-split-floating");
+    document.body.appendChild(panel);
+  }
 }
 
 function updatePanel() {
@@ -164,8 +198,10 @@ function updatePanel() {
   let panel = document.getElementById(PANEL_ID);
   if (!panel) {
     panel = createPanel();
-    placePanel(panel, values.anchor);
   }
+
+  const placementAnchor = findMoneyWaitingFrame() || values.anchor;
+  placePanel(panel, placementAnchor);
 
   panel.querySelector("[data-low-robux]").textContent = `${formatRobux(split.lowRateRobux)} R$`;
   panel.querySelector("[data-low-usd]").textContent = formatUsd(split.lowRateUsd);
